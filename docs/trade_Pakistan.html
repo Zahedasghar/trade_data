@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Using tidyverse for trade analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="trade_Pakistan_files/libs/clipboard/clipboard.min.js"></script>
+<script src="trade_Pakistan_files/libs/quarto-html/quarto.js"></script>
+<script src="trade_Pakistan_files/libs/quarto-html/popper.min.js"></script>
+<script src="trade_Pakistan_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="trade_Pakistan_files/libs/quarto-html/anchor.min.js"></script>
+<link href="trade_Pakistan_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="trade_Pakistan_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="trade_Pakistan_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="trade_Pakistan_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="trade_Pakistan_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Using tidyverse for trade analysis</h1>
+<p class="subtitle lead">School of Economics, Quaid-i-Azam University, Islamabad</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="trade-data-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="trade-data-analysis">Trade Data Analysis</h2>
+<p>This material is mainly based on <a href="https://r.tiid.org/">UN ESCAPE online training on R for trade analysis</a>. In this post, <code>tidyverse</code> is used instead of base-R (used in the original material) due to convenience and reading codes like english language. Moreover,<code>ggplot2</code> provides awesome viusalization tools.</p>
+</section>
+<section id="loading-data" class="level2">
+<h2 class="anchored" data-anchor-id="loading-data">Loading data</h2>
+<p>Data are provided on <a href="https://r.tiid.org/" class="uri">https://r.tiid.org/</a> to be downloaded in <code>csv</code> file and one can read this data directly in R. I have save this data in R as <code>RData</code> and have loaded as follows. For more details on how to read various data formats in R, one can browse on how to import data. An easy way is File-&gt;Import Data Set -&gt; then choose relevant file. In case of error, upload relevant packages.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"trade_data.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To get idea about the nature of this data, one may get <code>glimpse</code> ,<code>names</code> or use<code>head</code> etc.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trade_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "reporter" "flow"     "partner"  "year"     "value"   </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>value <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(trade_data<span class="sc">$</span>value)) <span class="co"># trade value as numeric</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># drop missing values</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>trade_data <span class="ot">&lt;-</span> trade_data[<span class="sc">!</span><span class="fu">is.na</span>(trade_data<span class="sc">$</span>value),]</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>trade_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 691,923 × 5
+   reporter flow  partner  year       value
+      &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;
+ 1      213 I         186  2008   156130202
+ 2      213 E         174  2008   117661208
+ 3      213 E         172  2008    31986252
+ 4      213 E         134  2008  1507966544
+ 5      213 I         181  2008     2407260
+ 6      213 I         182  2008    80414681
+ 7      213 I         676  2008      991884
+ 8      213 E         258  2008   107246580
+ 9      614 I         110  2008 15302709034
+10      213 E         648  2008     2660760
+# … with 691,913 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+</div>
+<p>We notice that there are <strong>5 main variables</strong>, namely: <strong>reporter</strong> indicating destination country, <strong>flow</strong> consists of import and export , <strong>year</strong> for which trade data are included in this file and <strong>value</strong> is USD.`</p>
+<p>We can now check the <strong><code>value</code></strong> in billion by dividing the previous function by a billion. Notice after the comma we specify the value column. Other than very large exporting/importing countries, one may convert <strong><code>value</code></strong> in millions of USD instead of taking it in billions of USD if required.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>trade_data <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(year)  <span class="co"># distinct number of years for which this trade data are available</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 1
+    year
+   &lt;dbl&gt;
+ 1  2008
+ 2  2009
+ 3  2010
+ 4  2011
+ 5  2012
+ 6  2013
+ 7  2014
+ 8  2015
+ 9  2016
+10  2017</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>trade_data<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">value=</span>value<span class="sc">/</span><span class="dv">1000000000</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen =</span> <span class="dv">999</span>) <span class="do">## To avoid scientific numbers (like appearing in exponents)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="pakistan" class="level2">
+<h2 class="anchored" data-anchor-id="pakistan">Pakistan</h2>
+<p>Now we analyze data for Pakistan for year <strong>2016</strong> and learn R for data exploration in this post.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 1
+  value
+  &lt;dbl&gt;
+1  20.5</code></pre>
+</div>
+</div>
+<p>So total export by Pakistan to the world (world coder in partner category is 1) is USD 20.8 billion. Now if we calculate Pakistan’s export with all countries, it is 86.3562426 USD Billion . This is greater than we calculated earlier with world. This is because there are many categories in partner category which include countries as well as different regions. So need some data wrangling before one can match both the figures. One has to exclude all those partner codes which are not equal to 1 and <strong>isCountry==1</strong>.</p>
+</section>
+<section id="export-plot-for-all-the-years" class="level2">
+<h2 class="anchored" data-anchor-id="export-plot-for-all-the-years">Export plot for all the years</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>PK_X<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>PK_X<span class="sc">$</span>year<span class="ot">&lt;-</span><span class="fu">as_date</span>(PK_X<span class="sc">$</span>year)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(PK_X)<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>value)<span class="sc">+</span><span class="fu">geom_line</span>()<span class="sc">+</span><span class="fu">labs</span>(<span class="at">y=</span><span class="st">"USD, billions"</span>, <span class="at">title =</span> <span class="st">"Pakistan's world export"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="import-and-export-together" class="level2">
+<h2 class="anchored" data-anchor-id="import-and-export-together">Import and Export Together</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>PK_XM<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>PK_XM<span class="sc">$</span>year<span class="ot">&lt;-</span><span class="fu">as_date</span>(PK_XM<span class="sc">$</span>year)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(PK_XM, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> value)) <span class="sc">+</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> flow, <span class="at">linetype=</span>flow)) <span class="sc">+</span> </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkred"</span>, <span class="st">"steelblue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="top-10-exporting-destination-for-china" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-exporting-destination-for-china">Top 10 exporting destination for China</h2>
+<p>Let’s now show in a plot the top 10 countries Pakistan exported to in 2016.</p>
+<p>We start by creating a table with Pakistanis exports in 2016 to individual countries:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>PK_X_countries <span class="ot">&lt;-</span> trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>But to get top trade partners we have to extract names of the countries for which following file is downloaded from the IMF. <strong>Partner</strong> codes are available but country names are not given which one has to download from the IMF website.</p>
+</section>
+<section id="country-code" class="level2">
+<h2 class="anchored" data-anchor-id="country-code">Country code</h2>
+<p>To select countries, `isCountry” or code has to be set 1 so other categories like advanced countries and countries not specified are excluded</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>imf_codes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"imf_codes.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 245 Columns: 10
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (5): iso2, country, region, income_level, AP_region
+dbl (5): code, isCountry, LLDC, LDC, SIDS
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>codes<span class="ot">&lt;-</span>imf_codes <span class="sc">%&gt;%</span>  <span class="fu">select</span>(code,country,isCountry, region)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>cntry_w <span class="ot">&lt;-</span> codes <span class="sc">%&gt;%</span> <span class="fu">filter</span>(isCountry<span class="sc">==</span><span class="dv">1</span><span class="sc">|</span>code<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(code)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>cntry_w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 216 × 1
+    code
+   &lt;dbl&gt;
+ 1   512
+ 2   799
+ 3   914
+ 4   612
+ 5     1
+ 6   859
+ 7   614
+ 8   312
+ 9   311
+10   213
+# … with 206 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span>partner <span class="sc">%in%</span> cntry_w) </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>PK_X_2016 </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data[trade_data<span class="sc">$</span>flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span> <span class="co">#select only exports</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span> <span class="co">#from china</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span> <span class="co">#in 2016</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span> <span class="co">#where country is not world (code for world is 1)</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner <span class="sc">%in%</span> cntry_w, <span class="co">#which is in the list of codes that we filtered earlier</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="st">"value"</span> <span class="co">#variable we're interested in</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(PK_X_2016)<span class="sc">/</span><span class="dv">1000000000</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="merge-country-codes-and-trade_data" class="level2">
+<h2 class="anchored" data-anchor-id="merge-country-codes-and-trade_data">Merge country codes and trade_data</h2>
+<p>Lets do the same exercise for Pakistan before proceeding further.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>PK_X_countries <span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span><span class="fu">left_join</span>(PK_X_countries,codes,<span class="at">by=</span><span class="fu">c</span>(<span class="st">"partner"</span><span class="ot">=</span><span class="st">"code"</span>))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">select</span>(country, value, isCountry,region)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>PKX_merged</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 207 × 4
+   country                  value isCountry region                     
+   &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                      
+ 1 Somalia              0.0329            1 Africa and Middle East     
+ 2 Albania              0.00430           1 Europe                     
+ 3 Syrian Arab Republic 0.0158            1 Africa and Middle East     
+ 4 Morocco              0.0175            1 Africa and Middle East     
+ 5 Angola               0.0171            1 Africa and Middle East     
+ 6 Netherlands          0.651             1 Europe                     
+ 7 Niger                0.0000769         1 Africa and Middle East     
+ 8 Paraguay             0.00672           1 Latin America and Carribean
+ 9 Gabon                0.00155           1 Africa and Middle East     
+10 Peru                 0.0261            1 Latin America and Carribean
+# … with 197 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only keep countries</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">filter</span>(isCountry<span class="sc">==</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="top-10-exporting-destinations-in-case-of-pakistan-in-2016" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-exporting-destinations-in-case-of-pakistan-in-2016">Top 10 exporting destinations in case of Pakistan in 2016</h2>
+<p>Sort export value by descending order using <code>arrange()</code> and then select top 10 exporting destinations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>PKX_merged_top10<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(value)) </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>PKX_merged_top10<span class="ot">&lt;-</span><span class="fu">head</span>(PKX_merged_top10,<span class="dv">10</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>PAK<span class="ot">&lt;-</span><span class="fu">ggplot</span>(PKX_merged_top10, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(country,<span class="sc">-</span>value), <span class="at">y =</span> value<span class="sc">*</span><span class="dv">1000</span>, <span class="at">fill=</span>region))<span class="sc">+</span><span class="fu">geom_bar</span>(<span class="at">stat=</span><span class="st">'identity'</span>)<span class="sc">+</span><span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">size =</span> <span class="dv">10</span>))<span class="sc">+</span><span class="fu">labs</span>(<span class="at">x=</span><span class="st">""</span>,<span class="at">y=</span><span class="st">"USD Millions"</span>,<span class="at">title=</span><span class="st">"Top 10 exporting destinations of Pakistan in 2016"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>PAK</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="india" class="level2">
+<h2 class="anchored" data-anchor-id="india">India</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span>partner <span class="sc">%in%</span> cntry_w) </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>PK_X_2016 </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data[trade_data<span class="sc">$</span>flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span> <span class="co">#select only exports</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span> <span class="co">#from china</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span> <span class="co">#in 2016</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span> <span class="co">#where country is not world (code for world is 1)</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner <span class="sc">%in%</span> cntry_w, <span class="co">#which is in the list of codes that we filtered earlier</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="st">"value"</span> <span class="co">#variable we're interested in</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(PK_X_2016)<span class="sc">/</span><span class="dv">1000000000</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="india-1" class="level2">
+<h2 class="anchored" data-anchor-id="india-1">India</h2>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>##Bangladesh</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="sri-lank" class="level2">
+<h2 class="anchored" data-anchor-id="sri-lank">Sri Lank</h2>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="south-asia" class="level2">
+<h2 class="anchored" data-anchor-id="south-asia">South Asia</h2>
+<p>Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 115.6095964, 1075.4836808, 86.3562426 and 86.3562426 respectively.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'gridExtra'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:dplyr':
+
+    combine</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(BD,IND,PAK,SRL, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
