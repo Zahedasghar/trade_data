@@ -163,3 +163,5 @@ PKX_merged_top10<-head(PKX_merged_top10,10)
 PKX_merged_top10
 ggplot(PKX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=region))+geom_bar(stat='identity')
 ```
+
+

@@ -1,12 +1,11 @@
 ---
 title: "Using tidyverse for trade analysis"
 subtitle: "School of Economics, Quaid-i-Azam University, Islamabad"
-Author:"Zahid Asghar"
-format: html
-editor: visual
-execute:
-  freeze: true  # never re-render during project render
-bibliography: references.bib
+date: "`r format(Sys.time(), '%d %B %Y')`"
+format: 
+  html:
+    toc: true
+    #   code-fold: trueibliography: references.bib
 ---
 
 ## Trade Data Analysis
@@ -141,11 +140,8 @@ PAK<-ggplot(PKX_merged_top10, aes(x = reorder(country,-value), y = value*1000, f
 
 PAK
 ```
+
 ## India
-
-
-
-
 
 ```{r, eval=FALSE}
 PK_X_2016<-trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner!=1&partner %in% cntry_w) 
@@ -191,6 +187,7 @@ BD<-ggplot(BDX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fi
 BD
 
 ```
+
 ## Sri Lank
 
 ```{r}
@@ -214,4 +211,3 @@ Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 
 library(gridExtra)
 grid.arrange(BD,IND,PAK,SRL, ncol=2)
 ```
-

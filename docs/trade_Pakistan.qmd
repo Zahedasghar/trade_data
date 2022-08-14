@@ -2,21 +2,10 @@
 title: "Using tidyverse for trade analysis"
 subtitle: "School of Economics, Quaid-i-Azam University, Islamabad"
 date: "`r format(Sys.time(), '%d %B %Y')`"
-output:
-  html_document:
-    code_folding: hide
-    css: styles.css
-    toc: yes
-    number_sections: yes
-    toc_float:
-      collapsed: no
-      smooth_scroll: no
-    toc_depth: 2
-  word_document:
-    toc: yes
-    toc_depth: '2'
-  pdf_document:
-    toc: yes
+format: 
+  html:
+    toc: true
+    code-fold: true
 bibliography: references.bib
 ---
 
