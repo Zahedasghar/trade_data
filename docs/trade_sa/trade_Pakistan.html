@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2022-08-15">
 
 <title>Using tidyverse for trade analysis</title>
 <style>
@@ -95,10 +96,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </head>
 
-<body class="fullcontent">
+<body>
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#trade-data-analysis" id="toc-trade-data-analysis" class="nav-link active" data-scroll-target="#trade-data-analysis">Trade Data Analysis</a></li>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a></li>
+  <li><a href="#pakistan" id="toc-pakistan" class="nav-link" data-scroll-target="#pakistan">Pakistan</a></li>
+  <li><a href="#export-plot-for-all-the-years" id="toc-export-plot-for-all-the-years" class="nav-link" data-scroll-target="#export-plot-for-all-the-years">Export plot for all the years</a></li>
+  <li><a href="#import-and-export-together" id="toc-import-and-export-together" class="nav-link" data-scroll-target="#import-and-export-together">Import and Export Together</a></li>
+  <li><a href="#top-10-exporting-destination-for-pakistan" id="toc-top-10-exporting-destination-for-pakistan" class="nav-link" data-scroll-target="#top-10-exporting-destination-for-pakistan">Top 10 exporting destination for Pakistan</a></li>
+  <li><a href="#country-code" id="toc-country-code" class="nav-link" data-scroll-target="#country-code">Country code</a></li>
+  <li><a href="#merge-country-codes-and-trade_data" id="toc-merge-country-codes-and-trade_data" class="nav-link" data-scroll-target="#merge-country-codes-and-trade_data">Merge country codes and trade_data</a></li>
+  <li><a href="#top-10-exporting-destinations-in-case-of-pakistan-in-2016" id="toc-top-10-exporting-destinations-in-case-of-pakistan-in-2016" class="nav-link" data-scroll-target="#top-10-exporting-destinations-in-case-of-pakistan-in-2016">Top 10 exporting destinations in case of Pakistan in 2016</a></li>
+  <li><a href="#india" id="toc-india" class="nav-link" data-scroll-target="#india">India</a></li>
+  <li><a href="#india-1" id="toc-india-1" class="nav-link" data-scroll-target="#india-1">India</a></li>
+  <li><a href="#sri-lank" id="toc-sri-lank" class="nav-link" data-scroll-target="#sri-lank">Sri Lank</a></li>
+  <li><a href="#south-asia" id="toc-south-asia" class="nav-link" data-scroll-target="#south-asia">South Asia</a></li>
+  </ul>
+</nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -112,6 +133,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="quarto-title-meta">
 
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 15, 2022</p>
+    </div>
+  </div>
     
   </div>
   
@@ -232,8 +259,8 @@ Attaching package: 'lubridate'</code></pre>
 </div>
 </div>
 </section>
-<section id="top-10-exporting-destination-for-china" class="level2">
-<h2 class="anchored" data-anchor-id="top-10-exporting-destination-for-china">Top 10 exporting destination for China</h2>
+<section id="top-10-exporting-destination-for-pakistan" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-exporting-destination-for-pakistan">Top 10 exporting destination for Pakistan</h2>
 <p>Let’s now show in a plot the top 10 countries Pakistan exported to in 2016.</p>
 <p>We start by creating a table with Pakistanis exports in 2016 to individual countries:</p>
 <div class="cell">
@@ -373,7 +400,7 @@ dbl (5): code, isCountry, LLDC, LDC, SIDS
 </section>
 <section id="south-asia" class="level2">
 <h2 class="anchored" data-anchor-id="south-asia">South Asia</h2>
-<p>Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 115.6095964, 1075.4836808, 86.3562426 and 86.3562426 respectively.</p>
+<p>Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 30.1310391, 261.862, 20.5478447 and 10.0459592 respectively.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">

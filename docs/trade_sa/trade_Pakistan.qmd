@@ -5,8 +5,7 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 format: 
   html:
     toc: true
-    code-fold: true
-bibliography: references.bib
+    #   code-fold: trueibliography: references.bib
 ---
 
 ## Trade Data Analysis
@@ -77,7 +76,7 @@ ggplot(PK_XM, aes(x = year, y = value)) +
   scale_color_manual(values = c("darkred", "steelblue"))
 ```
 
-## Top 10 exporting destination for China
+## Top 10 exporting destination for Pakistan
 
 Let's now show in a plot the top 10 countries Pakistan exported to in 2016.
 
