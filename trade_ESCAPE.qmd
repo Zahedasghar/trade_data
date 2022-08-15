@@ -165,3 +165,7 @@ ggplot(PKX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=r
 ```
 
 
+## Plots
+
+This data are downloaded from World Bank Development Indicators
+
