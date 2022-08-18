@@ -1,227 +1,322 @@
 ---
-title: " Animated graphs using R"
-format: html
-editor: visual
+title: "Using tidyverse for trade analysis"
+subtitle: "Zahid Asghar,School of Economics, QAU, Islamabad"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+format: 
+  html:
+    toc: true
+    #   code-fold: trueibliography: references.bib
+bibliography: references.bib
 ---
 
-## Exploring World Development Indicators
+## Trade Data Analysis
 
-We are using WDI data directly in R in the following chunck. 
+This material is mainly based on [UN ESCAPE online training on R for trade analysis](https://r.tiid.org/). In this post, `tidyverse` is used instead of base-R (used in the original material) due to convenience and reading codes like english language. Moreover,`ggplot2` provides awesome viusalization tools.
+
+## Loading data
+
+Data are provided on <https://r.tiid.org/> to be downloaded in `csv` file and one can read this data directly in R. I have save this data in R as `RData` and have loaded as follows. For more details on how to read various data formats in R, one can browse on how to import data. An easy way is File-\>Import Data Set -\> then choose relevant file. In case of error, upload relevant packages.
+
 ```{r}
 #| warning: false
 #| message: false
-
-library(ggthemes)
 library(tidyverse)
-library(gganimate)
-#install.packages("WDI")
-#install.packages("RJSONIO")
-library(RJSONIO)
-library(WDI)
-library(readr)
-#Let's see if we can find a code for export?
-#library(wbstat)
-#install.packages("wbstat")
-#WDIsearch(string='Population, Total', field='name', cache=NULL)
-
-#(There are also codes for Export of Goods and Services for males and females separately)
-
-#df<-WDI( indicator=c("GDP per capita"="NY.GDP.PCAP.KD","Population, Total"="SP.POP.TOTL","Fertility"="SP.DYN.TFRT.IN"), start=1960, end=2022, extra =TRUE)
-#df<-df %>% as_tibble()
-#saveRDS(df, file="gdp_fertility.rds")
-
-df_WDI<-readRDS("gdp_fertility.rds")
-## Keep only countries
-df_countries<-df_WDI %>% filter(region!="Aggregates")
+load("trade_data.RData")
 
 ```
 
-You can add options to executable code like this
+To get idea about the nature of this data, one may get `glimpse` ,`names` or use`head` etc.
 
 ```{r}
-#| warning: false
-#| message: false
-## Population, GDP and fertility
-df_gdp<-df_countries %>% select(iso3c, `Population, Total`, `GDP per capita`, Fertility,year, region)
-df_gdp<-df_gdp %>% rename(population=`Population, Total`,GDP=`GDP per capita`)
-glimpse(df_gdp)
-
+names(trade_data)
+trade_data$value <- as.numeric(as.character(trade_data$value)) # trade value as numeric
+# drop missing values
+trade_data <- trade_data[!is.na(trade_data$value),]
+trade_data
 ```
 
+We notice that there are **5 main variables**, namely: **reporter** indicating destination country, **flow** consists of import and export , **year** for which trade data are included in this file and **value** is USD.\`
 
-
+We can now check the **`value`** in billion by dividing the previous function by a billion. Notice after the comma we specify the value column. Other than very large exporting/importing countries, one may convert **`value`** in millions of USD instead of taking it in billions of USD if required.
 
 ```{r}
-#| warning: false
-#| message: false
-ggplot(df_gdp)+aes(x=population,y=GDP)+geom_point()
+trade_data %>% distinct(year)  # distinct number of years for which this trade data are available
+trade_data<-trade_data %>% mutate(value=value/1000000000)
 
-
+options(scipen = 999) ## To avoid scientific numbers (like appearing in exponents)
 ```
+
+## Pakistan
+
+Now we analyze data for Pakistan for year **2016** and learn R for data exploration in this post.
 
 ```{r}
-## For latest year
-#| warning: false
-#| message: false
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=population,y=GDP)+geom_point()
+
+trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner==1) %>% select(value)
 
 ```
+
+So total export by Pakistan to the world (world coder in partner category is 1) is USD 20.8 billion. Now if we calculate Pakistan's export with all countries, it is `r trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner!=1) %>% summarise(sum(value))` USD Billion . This is greater than we calculated earlier with world. This is because there are many categories in partner category which include countries as well as different regions. So need some data wrangling before one can match both the figures. One has to exclude all those partner codes which are not equal to 1 and **isCountry==1**.
+
+## Export plot for all the years
 
 ```{r}
-#| warning: false
-#| message: false
-
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=log(population),y=GDP)+geom_point()
-
-
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=GDP, Fertility)+geom_point()
-
+library(lubridate)
+PK_X<-trade_data %>% filter(flow=="E"&reporter==564&partner==1)
+PK_X$year<-as_date(PK_X$year)
+ggplot(PK_X)+aes(x=year,y=value)+geom_line()+labs(y="USD, billions", title = "Pakistan's world export")
 ```
+
+## Import and Export Together
 
 ```{r}
-#| warning: false
-#| message: false
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=GDP, Fertility)+geom_point()+geom_smooth()
-
-
-
-##We plot the logarithm of the GDP/capita against fertility rate in 2016 to control for skewness:
-
-
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=log(GDP), Fertility)+geom_point()
-
-
+PK_XM<-trade_data %>% filter(reporter==564&partner==1)
+PK_XM$year<-as_date(PK_XM$year)
+ggplot(PK_XM, aes(x = year, y = value)) + 
+  geom_line(aes(color = flow, linetype=flow)) + 
+  scale_color_manual(values = c("darkred", "steelblue"))
 ```
 
-## Include size of population
+## Top 10 exporting destination for Pakistan
+
+Let's now show in a plot the top 10 countries Pakistan exported to in 2016.
+
+We start by creating a table with Pakistanis exports in 2016 to individual countries:
 
 ```{r}
-#| warning: false
-#| message: false
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point()+
-  scale_x_log10()
+PK_X_countries <- trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner==1)
 
 ```
 
-## Some further refinement and labeling
+But to get top trade partners we have to extract names of the countries for which following file is downloaded from the IMF. **Partner** codes are available but country names are not given which one has to download from the IMF website.
 
-```{r }
-#| warning: false
-#| message: false
+## Country code
 
-df_gdp %>% filter(year==2020) %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point(show.legend = FALSE)+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)") #add y axis title
-
-
-```
-
-```{r }
-#| warning: false
-#| message: false
-df_gdp %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point(show.legend = FALSE)+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)") #add y axis title
-```
-
-## Animated graphs
-
-```{r eval=FALSE}
-#| warning: false
-#| message: false
-#install.packages('gifski')
-library("gifski")
-#install.packages('tweenr')
-library("tweenr")
-library(gganimate)
-library(png)
-```
-
-```{r }
-#| warning: false
-#| message: false
-animated_ggplot<-df_gdp %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point(show.legend = FALSE)+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)") +
- transition_time(year)
-animated_ggplot
-anim_save("animated_ggplot.gif")
-```
-
-We can add a title (Year) to the graph by specifying in labs - title="Year: {frame_time}":
-
-```{r }
-#| warning: false
-#| message: false
-animated_ggplot2<-df_gdp %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point(show.legend = FALSE)+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)", title = "Year:{frame_time}") +
- transition_time(year)
-animated_ggplot2
-anim_save("animated_ggplot2.gif")
-
-
-```
-
-To make it go slower
-
-```{r }
-#| warning: false
-#| message: false
-animate(animated_ggplot2, nframes=350, fps=20) # to make it go slower
-
-```
-
-Regions as the color variable
-
-```{r }
-#| warning: false
-#| message: false
-animated_ggplot3<-df_gdp %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=region)+geom_point(show.legend = FALSE)+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)", title = "Year:{frame_time}") +
- transition_time(year)
-animated_ggplot3
-anim_save("animated_ggplot3.gif")
-
-```
-
-## South Asia : Major Economies
+To select countries, \`isCountry' or code has to be set 1 so other categories like advanced countries and countries not specified are excluded
 
 ```{r}
-#| warning: false
-#| message: false
 
-animated_ggplot_sa<-df_gdp %>% filter(iso3c %in%c("BGD","IND","PAK","LKA")) %>% 
-  ggplot()+aes(x=log(GDP), Fertility, size=population, color=iso3c)+geom_point()+
-  scale_x_log10()+
-    labs(x="GDP per capita (constant 2015 USD)",       #add x axis title
-       y="Fertility rate, total (births per woman)", title = "Year:{frame_time}") +
- transition_time(year)
-animated_ggplot_sa
-anim_save("animated_ggplot_sa.gif")
+imf_codes <- read_csv("imf_codes.csv")
+codes<-imf_codes %>%  select(code,country,isCountry, region)
+cntry_w <- codes %>% filter(isCountry==1|code==1) %>% select(code)
+cntry_w
+```
 
+```{r, eval=FALSE}
+PK_X_2016<-trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner!=1&partner %in% cntry_w) 
+PK_X_2016 
+PK_X_2016<-trade_data[trade_data$flow=="E"& #select only exports
+trade_data$reporter==564& #from china
+trade_data$year==2016& #in 2016
+trade_data$partner!=1& #where country is not world (code for world is 1)
+trade_data$partner %in% cntry_w, #which is in the list of codes that we filtered earlier
+"value" #variable we're interested in
+]
+sum(PK_X_2016)/1000000000
+```
+
+## Merge country codes and trade_data
+
+Lets do the same exercise for Pakistan before proceeding further.
+
+```{r}
+PK_X_countries <-trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner!=1)
+
+PKX_merged<-left_join(PK_X_countries,codes,by=c("partner"="code"))
+PKX_merged<-PKX_merged %>% select(country, value, isCountry,region)
+PKX_merged
+# Only keep countries
+PKX_merged<-PKX_merged %>% filter(isCountry==1)
+
+```
+
+## Top 10 exporting destinations in case of Pakistan in 2016
+
+Sort export value by descending order using `arrange()` and then select top 10 exporting destinations.
+
+```{r}
+PKX_merged_top10<-PKX_merged %>% arrange(desc(value)) 
+PKX_merged_top10<-head(PKX_merged_top10,10)
+PAK<-ggplot(PKX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=region))+geom_bar(stat='identity')+theme(axis.text.x = element_text(angle = 90, size = 10))+labs(x="",y="USD Millions",title="Top 10 exporting destinations of Pakistan in 2016")
+
+PAK
+```
+
+## India
+
+```{r, eval=FALSE}
+PK_X_2016<-trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner!=1&partner %in% cntry_w) 
+PK_X_2016 
+PK_X_2016<-trade_data[trade_data$flow=="E"& #select only exports
+trade_data$reporter==564& #from china
+trade_data$year==2016& #in 2016
+trade_data$partner!=1& #where country is not world (code for world is 1)
+trade_data$partner %in% cntry_w, #which is in the list of codes that we filtered earlier
+"value" #variable we're interested in
+]
+sum(PK_X_2016)/1000000000
+```
+
+## India
+
+```{r}
+#| echo: false
+IN_X_countries <-trade_data %>% filter(flow=="E"&reporter==534&year==2016&partner!=1)
+
+INX_merged<-left_join(IN_X_countries,codes,by=c("partner"="code"))
+INX_merged<-INX_merged %>% select(country, value, isCountry,region)
+INX_merged<-INX_merged %>% filter(isCountry==1)
+INX_merged_top10<-INX_merged %>% arrange(desc(value)) 
+INX_merged_top10<-head(INX_merged_top10,10)
+IND<-ggplot(INX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=region))+geom_bar(stat='identity')+theme(axis.text.x = element_text(angle = 90, size = 10))+labs(x="",y="USD Millions",title="Top 10 exporting destinations of India in 2016")
+IND
+```
+
+##Bangladesh
+
+```{r}
+#| echo: false
+BD_X_countries <-trade_data %>% filter(flow=="E"&reporter==513&year==2016&partner!=1)
+
+BDX_merged<-left_join(BD_X_countries,codes,by=c("partner"="code"))
+BDX_merged<-BDX_merged %>% select(country, value, isCountry,region)
+BDX_merged<-BDX_merged %>% filter(isCountry==1)
+BDX_merged_top10<-BDX_merged %>% arrange(desc(value)) 
+BDX_merged_top10<-head(BDX_merged_top10,10)
+#BDX_merged_top10
+BD<-ggplot(BDX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=region))+geom_bar(stat='identity')+theme(axis.text.x = element_text(angle = 90, size = 10))+labs(x="",y="USD Millions",title="Top 10 exporting destinations of Bangladesh in 2016")
+BD
+
+```
+
+## Sri Lank
+
+```{r}
+#| echo: false
+SL_X_countries <-trade_data %>% filter(flow=="E"&reporter==524&year==2016&partner!=1)
+
+SLX_merged<-left_join(SL_X_countries,codes,by=c("partner"="code"))
+SLX_merged<-SLX_merged %>% select(country, value, isCountry,region)
+SLX_merged<-SLX_merged %>% filter(isCountry==1)
+SLX_merged_top10<-SLX_merged %>% arrange(desc(value)) 
+SLX_merged_top10<-head(SLX_merged_top10,10)
+SRL<-ggplot(SLX_merged_top10, aes(x = reorder(country,-value), y = value*1000, fill=region))+geom_bar(stat='identity')+theme(axis.text.x = element_text(angle = 90, size = 10))+labs(x="",y="USD Millions",title="Top 10 exporting destinations of Sri Lank in 2016")
+SRL
+```
+
+## South Asia
+
+Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is `r trade_data %>% filter(flow=="E"&reporter==513&year==2016&partner==1) %>% summarise(sum(value))`, `r trade_data %>% filter(flow=="E"&reporter==534&year==2016&partner==1) %>% summarise(sum(value))`, `r trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner==1) %>% summarise(sum(value))` and `r trade_data %>% filter(flow=="E"&reporter==524&year==2016&partner==1) %>% summarise(sum(value))` respectively.
+
+```{r}
+#| eval: false
+library(gridExtra)
+grid.arrange(BD,IND,PAK,SRL, ncol=2)
+```
+
+## Gravity Model
+
+In this section we shall use gravity model to see how does physical distance affect trade. Data are downloaded from
+
+```{r}
+#grav_data<-read_csv("C:/Users/92300/Downloads/short_data.csv")
+#grav_data
+#gd<-saveRDS(grav_data,file="gd.RData")
+gd<-readRDS("gd.RData")
 ```
 
 ```{r}
-#| warning: false
-#| message: false
-animate(animated_ggplot_sa, nframes=350, fps=20) # to make it go slower
+names(gd)
+gr_mod<-lm(export_ij~dist,data=gd)
+library(modelsummary)
+modelsummary(gr_mod)
+```
 
+There are large number of missing values which need to be dropped from `export_ij` variable.
+
+```{r}
+gd<- gd %>% filter(!is.na(export_ij)|export_ij!=0)
+dim(gd)
+#gr_mod2<-lm(log(export_ij)~log(dist),data=gd)
+
+```
+
+There are `0` values and log operator will not apply, so lets replace log values by a small amount or drop `0s` from the data.
+
+```{r}
+gd[gd$export_ij==0,"export_ij"] <- 0.0001
+gr_mod3<-lm(log(export_ij)~log(dist),data = gd)
+library(fixest)
+modelsummary(gr_mod3)
+```
+
+## Linear Gravity model with more variables and interaction terms
+
+Let's create a new regression with more variables:
+
+```{r}
+gr_mod4 <- lm(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             log(ga_tariff_ijji_sa)
+             , data = gd)
+modelsummary(gr_mod4)
+
+```
+
+We can also add interaction terms in order to capture joint variable effects by specifying the interaction in I operator:
+
+```{r}
+gr_mod5<- lm(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             I(rta*log(gdp_j)) + #put interaction in I operator
+             I(dist^2) + #first order polynomial - non-linear transformation
+             log(ga_tariff_ijji_sa)
+           , data = gd)
+modelsummary(gr_mod5)
+```
+
+To obtain **STATA** type robust se, we use `library(estimatr)` and run `lm_robust` instead of `lm` and report `clustered standard errors`.
+
+```{r}
+library(estimatr)
+reg_robust<- lm_robust(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             I(rta*log(gdp_j)) + #put interaction in I operator
+             I(dist^2) + #first order polynomial - non-linear transformation
+             log(ga_tariff_ijji_sa)
+           , data = gd,clusters = dist, se_type = "stata")
+modelsummary(reg_robust)
+
+```
+
+## Poisson Pseudo-Maximum Likelihood Estimator (PPML)
+
+The PPML model is often used in trade analysis because it can include trade values equal to zero, have fixed effects and easy interpretation. We will go over the basics of the PPML model in R. Once again, see for more information ESCAP's gravity model guide in R.
+
+The PPML function in R can be found in the gravity package:
+
+```{r}
+#install.packages("gravity")
+library(gravity)
+
+
+```
+
+Here we use `export_ij` as an output variable, we specify the distance variable in our data (`dist` in this case) and add any additional variables (e.g. partner GDP: `gdp_j` and reporter GDP: `gdp_i`). One important point is that when we run the distance variable in PPML in R, we transform it using the natural logarithm, i.e. `log` in R.
+
+```{r}
+ppml("export_ij", dist="dist", c('gdp_j' ,'gdp_i' ), data=gd)
+```
+
+PPML can handle zeros very well.
+
+```{r}
+gd[gd$export_ij==0.0001,"export_ij"] <- 0
+ppml("export_ij", dist="dist", c('gdp_j' ,'gdp_i' ), data=gd)
 ```

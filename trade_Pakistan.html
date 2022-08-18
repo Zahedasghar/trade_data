@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2022-08-15">
+<meta name="dcterms.date" content="2022-08-18">
 
 <title>Using tidyverse for trade analysis</title>
 <style>
@@ -93,6 +93,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <link href="trade_Pakistan_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="trade_Pakistan_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
+<script src="trade_Pakistan_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="trade_Pakistan_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 
 </head>
 
@@ -117,6 +120,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#india-1" id="toc-india-1" class="nav-link" data-scroll-target="#india-1">India</a></li>
   <li><a href="#sri-lank" id="toc-sri-lank" class="nav-link" data-scroll-target="#sri-lank">Sri Lank</a></li>
   <li><a href="#south-asia" id="toc-south-asia" class="nav-link" data-scroll-target="#south-asia">South Asia</a></li>
+  <li><a href="#gravity-model" id="toc-gravity-model" class="nav-link" data-scroll-target="#gravity-model">Gravity Model</a></li>
+  <li><a href="#linear-gravity-model-with-more-variables-and-interaction-terms" id="toc-linear-gravity-model-with-more-variables-and-interaction-terms" class="nav-link" data-scroll-target="#linear-gravity-model-with-more-variables-and-interaction-terms">Linear Gravity model with more variables and interaction terms</a></li>
+  <li><a href="#poisson-pseudo-maximum-likelihood-estimator-ppml" id="toc-poisson-pseudo-maximum-likelihood-estimator-ppml" class="nav-link" data-scroll-target="#poisson-pseudo-maximum-likelihood-estimator-ppml">Poisson Pseudo-Maximum Likelihood Estimator (PPML)</a></li>
   </ul>
 </nav>
 </div>
@@ -125,7 +131,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Using tidyverse for trade analysis</h1>
-<p class="subtitle lead">School of Economics, Quaid-i-Azam University, Islamabad</p>
+<p class="subtitle lead">Zahid Asghar,School of Economics, QAU, Islamabad</p>
 </div>
 
 
@@ -136,7 +142,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 15, 2022</p>
+      <p class="date">August 18, 2022</p>
     </div>
   </div>
     
@@ -270,7 +276,7 @@ Attaching package: 'lubridate'</code></pre>
 </section>
 <section id="country-code" class="level2">
 <h2 class="anchored" data-anchor-id="country-code">Country code</h2>
-<p>To select countries, `isCountry” or code has to be set 1 so other categories like advanced countries and countries not specified are excluded</p>
+<p>To select countries, `isCountry’ or code has to be set 1 so other categories like advanced countries and countries not specified are excluded</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>imf_codes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"imf_codes.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -402,19 +408,581 @@ dbl (5): code, isCountry, LLDC, LDC, SIDS
 <h2 class="anchored" data-anchor-id="south-asia">South Asia</h2>
 <p>Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 30.1310391, 261.862, 20.5478447 and 10.0459592 respectively.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(BD,IND,PAK,SRL, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="gravity-model" class="level2">
+<h2 class="anchored" data-anchor-id="gravity-model">Gravity Model</h2>
+<p>In this section we shall use gravity model to see how does physical distance affect trade. Data are downloaded from</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">#grav_data&lt;-read_csv("C:/Users/92300/Downloads/short_data.csv")</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co">#grav_data</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">#gd&lt;-saveRDS(grav_data,file="gd.RData")</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>gd<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="st">"gd.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "...1"              "reporter"          "partner"          
+ [4] "year"              "export_ij"         "import_ij"        
+ [7] "trade_ij"          "export_i"          "import_i"         
+[10] "trade_i"           "export_j"          "import_j"         
+[13] "trade_j"           "ctcij"             "ntcij"            
+[16] "tariffrateij_sa"   "tariffrateij_wa"   "tariff_ij_sa"     
+[19] "tariff_ij_wa"      "tariffrateji_sa"   "tariffrateji_wa"  
+[22] "tariff_ji_sa"      "tariff_ji_wa"      "ga_tariff_ijji_sa"
+[25] "ga_tariff_ijji_wa" "dist"              "contig"           
+[28] "comlang_off"       "comlang_ethno"     "colony"           
+[31] "comcol"            "curcol"            "col45"            
+[34] "smctry"            "landlocked_i"      "landlocked_j"     
+[37] "landlocked_ij"     "rta"               "gdp_i"            
+[40] "gdpgrowth_i"       "gdppc_i"           "gdppcgrowth_i"    
+[43] "rgdp_i"            "rgdppc_i"          "gdp_j"            
+[46] "gdpgrowth_j"       "gdppc_j"           "gdppcgrowth_j"    
+[49] "rgdp_j"            "rgdppc_j"          "dtf_i"            
+[52] "tab_i"             "startbiz_i"        "credit_i"         
+[55] "invest_i"          "tax_i"             "contract_i"       
+[58] "dtf_j"             "tab_j"             "startbiz_j"       
+[61] "credit_j"          "invest_j"          "tax_j"            
+[64] "contract_j"        "lsci_i"            "lsci_j"           
+[67] "lpi_i"             "lpi_j"            </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>gr_mod<span class="ot">&lt;-</span><span class="fu">lm</span>(export_ij<span class="sc">~</span>dist,<span class="at">data=</span>gd)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> 1094335800.336 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (16216751.545) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> dist </td>
+   <td style="text-align:center;"> −73722.696 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (1932.181) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 374238 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 17822183.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 17822215.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −8911088.698 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 5307300689.42 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>There are large number of missing values which need to be dropped from <code>export_ij</code> variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>gd<span class="ot">&lt;-</span> gd <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(export_ij)<span class="sc">|</span>export_ij<span class="sc">!=</span><span class="dv">0</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 397638     68</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#gr_mod2&lt;-lm(log(export_ij)~log(dist),data=gd)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There are <code>0</code> values and log operator will not apply, so lets replace log values by a small amount or drop <code>0s</code> from the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>gd[gd<span class="sc">$</span>export_ij<span class="sc">==</span><span class="dv">0</span>,<span class="st">"export_ij"</span>] <span class="ot">&lt;-</span> <span class="fl">0.0001</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>gr_mod3<span class="ot">&lt;-</span><span class="fu">lm</span>(<span class="fu">log</span>(export_ij)<span class="sc">~</span><span class="fu">log</span>(dist),<span class="at">data =</span> gd)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> 23.169 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.078) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −0.974 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.009) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 374238 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.030 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.030 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 13321673.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 13321705.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −1119945.153 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:center;"> 11660.950 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 4.82 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</section>
+<section id="linear-gravity-model-with-more-variables-and-interaction-terms" class="level2">
+<h2 class="anchored" data-anchor-id="linear-gravity-model-with-more-variables-and-interaction-terms">Linear Gravity model with more variables and interaction terms</h2>
+<p>Let’s create a new regression with more variables:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>gr_mod4 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>             , <span class="at">data =</span> gd)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −30.118 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.145) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.365 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.009) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.406 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.003) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.872 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.003) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 0.821 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.022) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> 0.361 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.134) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.470 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.470 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 9478461.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 9478534.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −702115.760 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:center;"> 46568.690 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 3.50 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>We can also add interaction terms in order to capture joint variable effects by specifying the interaction in I operator:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>gr_mod5<span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(rta<span class="sc">*</span><span class="fu">log</span>(gdp_j)) <span class="sc">+</span> <span class="co">#put interaction in I operator</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(dist<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="co">#first order polynomial - non-linear transformation</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>           , <span class="at">data =</span> gd)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod5)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −29.061 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.173) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.694 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.013) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.425 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.004) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.913 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.004) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 6.319 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.208) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(rta * log(gdp_j)) </td>
+   <td style="text-align:center;"> −0.226 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.008) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(dist^2) </td>
+   <td style="text-align:center;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.000) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> −0.024 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.134) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.474 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.474 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 9476514.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 9476609.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −701140.477 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 3.48 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>To obtain <strong>STATA</strong> type robust se, we use <code>library(estimatr)</code> and run <code>lm_robust</code> instead of <code>lm</code> and report <code>clustered standard errors</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estimatr)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>reg_robust<span class="ot">&lt;-</span> <span class="fu">lm_robust</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(rta<span class="sc">*</span><span class="fu">log</span>(gdp_j)) <span class="sc">+</span> <span class="co">#put interaction in I operator</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(dist<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="co">#first order polynomial - non-linear transformation</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>           , <span class="at">data =</span> gd,<span class="at">clusters =</span> dist, <span class="at">se_type =</span> <span class="st">"stata"</span>)</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(reg_robust)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −29.061 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.485) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.694 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.042) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.425 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.010) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.913 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.008) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 6.319 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.619) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(rta * log(gdp_j)) </td>
+   <td style="text-align:center;"> −0.226 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.024) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(dist^2) </td>
+   <td style="text-align:center;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.000) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> −0.024 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.353) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> −0.015 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 12593479.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 12593573.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 6124002494.79 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Std.Errors </td>
+   <td style="text-align:center;"> by: dist </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</section>
+<section id="poisson-pseudo-maximum-likelihood-estimator-ppml" class="level2">
+<h2 class="anchored" data-anchor-id="poisson-pseudo-maximum-likelihood-estimator-ppml">Poisson Pseudo-Maximum Likelihood Estimator (PPML)</h2>
+<p>The PPML model is often used in trade analysis because it can include trade values equal to zero, have fixed effects and easy interpretation. We will go over the basics of the PPML model in R. Once again, see for more information ESCAP’s gravity model guide in R.</p>
+<p>The PPML function in R can be found in the gravity package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("gravity")</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gravity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
-Attaching package: 'gridExtra'</code></pre>
+Attaching package: 'gravity'</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>The following object is masked from 'package:dplyr':
+<pre><code>The following object is masked from 'package:stats':
 
-    combine</code></pre>
+    nls</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(BD,IND,PAK,SRL, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="trade_Pakistan_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+<p>Here we use <code>export_ij</code> as an output variable, we specify the distance variable in our data (<code>dist</code> in this case) and add any additional variables (e.g.&nbsp;partner GDP: <code>gdp_j</code> and reporter GDP: <code>gdp_i</code>). One important point is that when we run the distance variable in PPML in R, we transform it using the natural logarithm, i.e.&nbsp;<code>log</code> in R.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ppml</span>(<span class="st">"export_ij"</span>, <span class="at">dist=</span><span class="st">"dist"</span>, <span class="fu">c</span>(<span class="st">'gdp_j'</span> ,<span class="st">'gdp_i'</span> ), <span class="at">data=</span>gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  y_ppml ~ dist_log + gdp_j + gdp_i
+
+Coefficients:
+        (Intercept)             dist_log                gdp_j  
+27.7682428428480605  -1.0214038335587627   0.0000000000002929  
+              gdp_i  
+ 0.0000000000002737  
+
+Degrees of Freedom: 349621 Total (i.e. Null);  349618 Residual
+  (24616 observations deleted due to missingness)
+Null Deviance:      1330000000000000 
+Residual Deviance: 696700000000000  AIC: NA</code></pre>
+</div>
+</div>
+<p>PPML can handle zeros very well.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>gd[gd<span class="sc">$</span>export_ij<span class="sc">==</span><span class="fl">0.0001</span>,<span class="st">"export_ij"</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ppml</span>(<span class="st">"export_ij"</span>, <span class="at">dist=</span><span class="st">"dist"</span>, <span class="fu">c</span>(<span class="st">'gdp_j'</span> ,<span class="st">'gdp_i'</span> ), <span class="at">data=</span>gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  y_ppml ~ dist_log + gdp_j + gdp_i
+
+Coefficients:
+        (Intercept)             dist_log                gdp_j  
+27.7682428428480392  -1.0214038335587627   0.0000000000002929  
+              gdp_i  
+ 0.0000000000002737  
+
+Degrees of Freedom: 349621 Total (i.e. Null);  349618 Residual
+  (24616 observations deleted due to missingness)
+Null Deviance:      1330000000000000 
+Residual Deviance: 696700000000000  AIC: NA</code></pre>
 </div>
 </div>
 </section>

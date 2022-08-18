@@ -1,11 +1,12 @@
 ---
 title: "Using tidyverse for trade analysis"
-subtitle: "School of Economics, Quaid-i-Azam University, Islamabad"
+subtitle: "Zahid Asghar,School of Economics, QAU, Islamabad"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 format: 
   html:
     toc: true
     #   code-fold: trueibliography: references.bib
+bibliography: references.bib
 ---
 
 ## Trade Data Analysis
@@ -91,7 +92,7 @@ But to get top trade partners we have to extract names of the countries for whic
 
 ## Country code
 
-To select countries, \`isCountry" or code has to be set 1 so other categories like advanced countries and countries not specified are excluded
+To select countries, \`isCountry' or code has to be set 1 so other categories like advanced countries and countries not specified are excluded
 
 ```{r}
 
@@ -208,6 +209,114 @@ SRL
 Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is `r trade_data %>% filter(flow=="E"&reporter==513&year==2016&partner==1) %>% summarise(sum(value))`, `r trade_data %>% filter(flow=="E"&reporter==534&year==2016&partner==1) %>% summarise(sum(value))`, `r trade_data %>% filter(flow=="E"&reporter==564&year==2016&partner==1) %>% summarise(sum(value))` and `r trade_data %>% filter(flow=="E"&reporter==524&year==2016&partner==1) %>% summarise(sum(value))` respectively.
 
 ```{r}
+#| eval: false
 library(gridExtra)
 grid.arrange(BD,IND,PAK,SRL, ncol=2)
+```
+
+## Gravity Model
+
+In this section we shall use gravity model to see how does physical distance affect trade. Data are downloaded from
+
+```{r}
+#grav_data<-read_csv("C:/Users/92300/Downloads/short_data.csv")
+#grav_data
+#gd<-saveRDS(grav_data,file="gd.RData")
+gd<-readRDS("gd.RData")
+```
+
+```{r}
+names(gd)
+gr_mod<-lm(export_ij~dist,data=gd)
+library(modelsummary)
+modelsummary(gr_mod)
+```
+
+There are large number of missing values which need to be dropped from `export_ij` variable.
+
+```{r}
+gd<- gd %>% filter(!is.na(export_ij)|export_ij!=0)
+dim(gd)
+#gr_mod2<-lm(log(export_ij)~log(dist),data=gd)
+
+```
+
+There are `0` values and log operator will not apply, so lets replace log values by a small amount or drop `0s` from the data.
+
+```{r}
+gd[gd$export_ij==0,"export_ij"] <- 0.0001
+gr_mod3<-lm(log(export_ij)~log(dist),data = gd)
+library(fixest)
+modelsummary(gr_mod3)
+```
+
+## Linear Gravity model with more variables and interaction terms
+
+Let's create a new regression with more variables:
+
+```{r}
+gr_mod4 <- lm(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             log(ga_tariff_ijji_sa)
+             , data = gd)
+modelsummary(gr_mod4)
+
+```
+
+We can also add interaction terms in order to capture joint variable effects by specifying the interaction in I operator:
+
+```{r}
+gr_mod5<- lm(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             I(rta*log(gdp_j)) + #put interaction in I operator
+             I(dist^2) + #first order polynomial - non-linear transformation
+             log(ga_tariff_ijji_sa)
+           , data = gd)
+modelsummary(gr_mod5)
+```
+
+To obtain **STATA** type robust se, we use `library(estimatr)` and run `lm_robust` instead of `lm` and report `clustered standard errors`.
+
+```{r}
+library(estimatr)
+reg_robust<- lm_robust(log(export_ij) ~ log(dist) + 
+             log(gdp_i) + 
+             log(gdp_j) +
+             rta +
+             I(rta*log(gdp_j)) + #put interaction in I operator
+             I(dist^2) + #first order polynomial - non-linear transformation
+             log(ga_tariff_ijji_sa)
+           , data = gd,clusters = dist, se_type = "stata")
+modelsummary(reg_robust)
+
+```
+
+## Poisson Pseudo-Maximum Likelihood Estimator (PPML)
+
+The PPML model is often used in trade analysis because it can include trade values equal to zero, have fixed effects and easy interpretation. We will go over the basics of the PPML model in R. Once again, see for more information ESCAP's gravity model guide in R.
+
+The PPML function in R can be found in the gravity package:
+
+```{r}
+#install.packages("gravity")
+library(gravity)
+
+
+```
+
+Here we use `export_ij` as an output variable, we specify the distance variable in our data (`dist` in this case) and add any additional variables (e.g. partner GDP: `gdp_j` and reporter GDP: `gdp_i`). One important point is that when we run the distance variable in PPML in R, we transform it using the natural logarithm, i.e. `log` in R.
+
+```{r}
+ppml("export_ij", dist="dist", c('gdp_j' ,'gdp_i' ), data=gd)
+```
+
+PPML can handle zeros very well.
+
+```{r}
+gd[gd$export_ij==0.0001,"export_ij"] <- 0
+ppml("export_ij", dist="dist", c('gdp_j' ,'gdp_i' ), data=gd)
 ```

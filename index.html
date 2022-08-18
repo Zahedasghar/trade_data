@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="dcterms.date" content="2022-08-18">
 
-<title>Animated graphs using R</title>
+<title>Using tidyverse for trade analysis</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -92,18 +93,45 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
+<script src="index_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="index_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 
 </head>
 
-<body class="fullcontent">
+<body>
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#trade-data-analysis" id="toc-trade-data-analysis" class="nav-link active" data-scroll-target="#trade-data-analysis">Trade Data Analysis</a></li>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a></li>
+  <li><a href="#pakistan" id="toc-pakistan" class="nav-link" data-scroll-target="#pakistan">Pakistan</a></li>
+  <li><a href="#export-plot-for-all-the-years" id="toc-export-plot-for-all-the-years" class="nav-link" data-scroll-target="#export-plot-for-all-the-years">Export plot for all the years</a></li>
+  <li><a href="#import-and-export-together" id="toc-import-and-export-together" class="nav-link" data-scroll-target="#import-and-export-together">Import and Export Together</a></li>
+  <li><a href="#top-10-exporting-destination-for-pakistan" id="toc-top-10-exporting-destination-for-pakistan" class="nav-link" data-scroll-target="#top-10-exporting-destination-for-pakistan">Top 10 exporting destination for Pakistan</a></li>
+  <li><a href="#country-code" id="toc-country-code" class="nav-link" data-scroll-target="#country-code">Country code</a></li>
+  <li><a href="#merge-country-codes-and-trade_data" id="toc-merge-country-codes-and-trade_data" class="nav-link" data-scroll-target="#merge-country-codes-and-trade_data">Merge country codes and trade_data</a></li>
+  <li><a href="#top-10-exporting-destinations-in-case-of-pakistan-in-2016" id="toc-top-10-exporting-destinations-in-case-of-pakistan-in-2016" class="nav-link" data-scroll-target="#top-10-exporting-destinations-in-case-of-pakistan-in-2016">Top 10 exporting destinations in case of Pakistan in 2016</a></li>
+  <li><a href="#india" id="toc-india" class="nav-link" data-scroll-target="#india">India</a></li>
+  <li><a href="#india-1" id="toc-india-1" class="nav-link" data-scroll-target="#india-1">India</a></li>
+  <li><a href="#sri-lank" id="toc-sri-lank" class="nav-link" data-scroll-target="#sri-lank">Sri Lank</a></li>
+  <li><a href="#south-asia" id="toc-south-asia" class="nav-link" data-scroll-target="#south-asia">South Asia</a></li>
+  <li><a href="#gravity-model" id="toc-gravity-model" class="nav-link" data-scroll-target="#gravity-model">Gravity Model</a></li>
+  <li><a href="#linear-gravity-model-with-more-variables-and-interaction-terms" id="toc-linear-gravity-model-with-more-variables-and-interaction-terms" class="nav-link" data-scroll-target="#linear-gravity-model-with-more-variables-and-interaction-terms">Linear Gravity model with more variables and interaction terms</a></li>
+  <li><a href="#poisson-pseudo-maximum-likelihood-estimator-ppml" id="toc-poisson-pseudo-maximum-likelihood-estimator-ppml" class="nav-link" data-scroll-target="#poisson-pseudo-maximum-likelihood-estimator-ppml">Poisson Pseudo-Maximum Likelihood Estimator (PPML)</a></li>
+  </ul>
+</nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Animated graphs using R</h1>
+<h1 class="title">Using tidyverse for trade analysis</h1>
+<p class="subtitle lead">Zahid Asghar,School of Economics, QAU, Islamabad</p>
 </div>
 
 
@@ -111,215 +139,850 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="quarto-title-meta">
 
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 18, 2022</p>
+    </div>
+  </div>
     
   </div>
   
 
 </header>
 
-<section id="exploring-world-development-indicators" class="level2">
-<h2 class="anchored" data-anchor-id="exploring-world-development-indicators">Exploring World Development Indicators</h2>
-<p>We are using WDI data directly in R in the following chunck.</p>
+<section id="trade-data-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="trade-data-analysis">Trade Data Analysis</h2>
+<p>This material is mainly based on <a href="https://r.tiid.org/">UN ESCAPE online training on R for trade analysis</a>. In this post, <code>tidyverse</code> is used instead of base-R (used in the original material) due to convenience and reading codes like english language. Moreover,<code>ggplot2</code> provides awesome viusalization tools.</p>
+</section>
+<section id="loading-data" class="level2">
+<h2 class="anchored" data-anchor-id="loading-data">Loading data</h2>
+<p>Data are provided on <a href="https://r.tiid.org/" class="uri">https://r.tiid.org/</a> to be downloaded in <code>csv</code> file and one can read this data directly in R. I have save this data in R as <code>RData</code> and have loaded as follows. For more details on how to read various data formats in R, one can browse on how to import data. An easy way is File-&gt;Import Data Set -&gt; then choose relevant file. In case of error, upload relevant packages.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggthemes)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gganimate)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("WDI")</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("RJSONIO")</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RJSONIO)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(WDI)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Let's see if we can find a code for export?</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#library(wbstat)</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("wbstat")</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#WDIsearch(string='Population, Total', field='name', cache=NULL)</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#(There are also codes for Export of Goods and Services for males and females separately)</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#df&lt;-WDI( indicator=c("GDP per capita"="NY.GDP.PCAP.KD","Population, Total"="SP.POP.TOTL","Fertility"="SP.DYN.TFRT.IN"), start=1960, end=2022, extra =TRUE)</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#df&lt;-df %&gt;% as_tibble()</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#saveRDS(df, file="gdp_fertility.rds")</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>df_WDI<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="st">"gdp_fertility.rds"</span>)</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="do">## Keep only countries</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>df_countries<span class="ot">&lt;-</span>df_WDI <span class="sc">%&gt;%</span> <span class="fu">filter</span>(region<span class="sc">!=</span><span class="st">"Aggregates"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"trade_data.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>You can add options to executable code like this</p>
+<p>To get idea about the nature of this data, one may get <code>glimpse</code> ,<code>names</code> or use<code>head</code> etc.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Population, GDP and fertility</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df_gdp<span class="ot">&lt;-</span>df_countries <span class="sc">%&gt;%</span> <span class="fu">select</span>(iso3c, <span class="st">`</span><span class="at">Population, Total</span><span class="st">`</span>, <span class="st">`</span><span class="at">GDP per capita</span><span class="st">`</span>, Fertility,year, region)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>df_gdp<span class="ot">&lt;-</span>df_gdp <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">population=</span><span class="st">`</span><span class="at">Population, Total</span><span class="st">`</span>,<span class="at">GDP=</span><span class="st">`</span><span class="at">GDP per capita</span><span class="st">`</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(df_gdp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(trade_data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Rows: 13,454
-Columns: 6
-$ iso3c      &lt;chr&gt; "AND", "AND", "AND", "AND", "AND", "AND", "AND", "AND", "AN…
-$ population &lt;dbl&gt; 64363, 64318, 14378, 15379, 64140, 13410, 23053, 24275, 255…
-$ GDP        &lt;dbl&gt; 28701.21, 31325.64, NA, NA, 32416.14, NA, NA, 35391.21, 351…
-$ Fertility  &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA,…
-$ year       &lt;int&gt; 1996, 1997, 1961, 1962, 1998, 1960, 1969, 1970, 1971, 1972,…
-$ region     &lt;chr&gt; "Europe &amp; Central Asia", "Europe &amp; Central Asia", "Europe &amp;…</code></pre>
+<pre><code>[1] "reporter" "flow"     "partner"  "year"     "value"   </code></pre>
 </div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_gdp)<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>population,<span class="at">y=</span>GDP)<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">## For latest year</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>population,<span class="at">y=</span>GDP)<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>value <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(trade_data<span class="sc">$</span>value)) <span class="co"># trade value as numeric</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Warning: Removed 16 rows containing missing values (geom_point).</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
 </div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># drop missing values</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>trade_data <span class="ot">&lt;-</span> trade_data[<span class="sc">!</span><span class="fu">is.na</span>(trade_data<span class="sc">$</span>value),]</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>trade_data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 691,923 × 5
+   reporter flow  partner  year       value
+      &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;       &lt;dbl&gt;
+ 1      213 I         186  2008   156130202
+ 2      213 E         174  2008   117661208
+ 3      213 E         172  2008    31986252
+ 4      213 E         134  2008  1507966544
+ 5      213 I         181  2008     2407260
+ 6      213 I         182  2008    80414681
+ 7      213 I         676  2008      991884
+ 8      213 E         258  2008   107246580
+ 9      614 I         110  2008 15302709034
+10      213 E         648  2008     2660760
+# … with 691,913 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
 </div>
 </div>
+<p>We notice that there are <strong>5 main variables</strong>, namely: <strong>reporter</strong> indicating destination country, <strong>flow</strong> consists of import and export , <strong>year</strong> for which trade data are included in this file and <strong>value</strong> is USD.`</p>
+<p>We can now check the <strong><code>value</code></strong> in billion by dividing the previous function by a billion. Notice after the comma we specify the value column. Other than very large exporting/importing countries, one may convert <strong><code>value</code></strong> in millions of USD instead of taking it in billions of USD if required.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(population),<span class="at">y=</span>GDP)<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>trade_data <span class="sc">%&gt;%</span> <span class="fu">distinct</span>(year)  <span class="co"># distinct number of years for which this trade data are available</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 1
+    year
+   &lt;dbl&gt;
+ 1  2008
+ 2  2009
+ 3  2010
+ 4  2011
+ 5  2012
+ 6  2013
+ 7  2014
+ 8  2015
+ 9  2016
+10  2017</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>trade_data<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">value=</span>value<span class="sc">/</span><span class="dv">1000000000</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">scipen =</span> <span class="dv">999</span>) <span class="do">## To avoid scientific numbers (like appearing in exponents)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="pakistan" class="level2">
+<h2 class="anchored" data-anchor-id="pakistan">Pakistan</h2>
+<p>Now we analyze data for Pakistan for year <strong>2016</strong> and learn R for data exploration in this post.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 1
+  value
+  &lt;dbl&gt;
+1  20.5</code></pre>
+</div>
+</div>
+<p>So total export by Pakistan to the world (world coder in partner category is 1) is USD 20.8 billion. Now if we calculate Pakistan’s export with all countries, it is 86.3562426 USD Billion . This is greater than we calculated earlier with world. This is because there are many categories in partner category which include countries as well as different regions. So need some data wrangling before one can match both the figures. One has to exclude all those partner codes which are not equal to 1 and <strong>isCountry==1</strong>.</p>
+</section>
+<section id="export-plot-for-all-the-years" class="level2">
+<h2 class="anchored" data-anchor-id="export-plot-for-all-the-years">Export plot for all the years</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>PK_X<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>PK_X<span class="sc">$</span>year<span class="ot">&lt;-</span><span class="fu">as_date</span>(PK_X<span class="sc">$</span>year)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(PK_X)<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>year,<span class="at">y=</span>value)<span class="sc">+</span><span class="fu">geom_line</span>()<span class="sc">+</span><span class="fu">labs</span>(<span class="at">y=</span><span class="st">"USD, billions"</span>, <span class="at">title =</span> <span class="st">"Pakistan's world export"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>GDP, Fertility)<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid" width="672"></p>
 </div>
-</div>
+</section>
+<section id="import-and-export-together" class="level2">
+<h2 class="anchored" data-anchor-id="import-and-export-together">Import and Export Together</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span>GDP, Fertility)<span class="sc">+</span><span class="fu">geom_point</span>()<span class="sc">+</span><span class="fu">geom_smooth</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>PK_XM<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>PK_XM<span class="sc">$</span>year<span class="ot">&lt;-</span><span class="fu">as_date</span>(PK_XM<span class="sc">$</span>year)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(PK_XM, <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> value)) <span class="sc">+</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> flow, <span class="at">linetype=</span>flow)) <span class="sc">+</span> </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"darkred"</span>, <span class="st">"steelblue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="do">##We plot the logarithm of the GDP/capita against fertility rate in 2016 to control for skewness:</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility)<span class="sc">+</span><span class="fu">geom_point</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="top-10-exporting-destination-for-pakistan" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-exporting-destination-for-pakistan">Top 10 exporting destination for Pakistan</h2>
+<p>Let’s now show in a plot the top 10 countries Pakistan exported to in 2016.</p>
+<p>We start by creating a table with Pakistanis exports in 2016 to individual countries:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>PK_X_countries <span class="ot">&lt;-</span> trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">==</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>But to get top trade partners we have to extract names of the countries for which following file is downloaded from the IMF. <strong>Partner</strong> codes are available but country names are not given which one has to download from the IMF website.</p>
+</section>
+<section id="country-code" class="level2">
+<h2 class="anchored" data-anchor-id="country-code">Country code</h2>
+<p>To select countries, `isCountry’ or code has to be set 1 so other categories like advanced countries and countries not specified are excluded</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>imf_codes <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"imf_codes.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 245 Columns: 10
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr (5): iso2, country, region, income_level, AP_region
+dbl (5): code, isCountry, LLDC, LDC, SIDS
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>codes<span class="ot">&lt;-</span>imf_codes <span class="sc">%&gt;%</span>  <span class="fu">select</span>(code,country,isCountry, region)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>cntry_w <span class="ot">&lt;-</span> codes <span class="sc">%&gt;%</span> <span class="fu">filter</span>(isCountry<span class="sc">==</span><span class="dv">1</span><span class="sc">|</span>code<span class="sc">==</span><span class="dv">1</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(code)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>cntry_w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 216 × 1
+    code
+   &lt;dbl&gt;
+ 1   512
+ 2   799
+ 3   914
+ 4   612
+ 5     1
+ 6   859
+ 7   614
+ 8   312
+ 9   311
+10   213
+# … with 206 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span>partner <span class="sc">%in%</span> cntry_w) </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>PK_X_2016 </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data[trade_data<span class="sc">$</span>flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span> <span class="co">#select only exports</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span> <span class="co">#from china</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span> <span class="co">#in 2016</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span> <span class="co">#where country is not world (code for world is 1)</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner <span class="sc">%in%</span> cntry_w, <span class="co">#which is in the list of codes that we filtered earlier</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="st">"value"</span> <span class="co">#variable we're interested in</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(PK_X_2016)<span class="sc">/</span><span class="dv">1000000000</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="merge-country-codes-and-trade_data" class="level2">
+<h2 class="anchored" data-anchor-id="merge-country-codes-and-trade_data">Merge country codes and trade_data</h2>
+<p>Lets do the same exercise for Pakistan before proceeding further.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>PK_X_countries <span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span><span class="fu">left_join</span>(PK_X_countries,codes,<span class="at">by=</span><span class="fu">c</span>(<span class="st">"partner"</span><span class="ot">=</span><span class="st">"code"</span>))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">select</span>(country, value, isCountry,region)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>PKX_merged</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 207 × 4
+   country                  value isCountry region                     
+   &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;                      
+ 1 Somalia              0.0329            1 Africa and Middle East     
+ 2 Albania              0.00430           1 Europe                     
+ 3 Syrian Arab Republic 0.0158            1 Africa and Middle East     
+ 4 Morocco              0.0175            1 Africa and Middle East     
+ 5 Angola               0.0171            1 Africa and Middle East     
+ 6 Netherlands          0.651             1 Europe                     
+ 7 Niger                0.0000769         1 Africa and Middle East     
+ 8 Paraguay             0.00672           1 Latin America and Carribean
+ 9 Gabon                0.00155           1 Africa and Middle East     
+10 Peru                 0.0261            1 Latin America and Carribean
+# … with 197 more rows
+# ℹ Use `print(n = ...)` to see more rows</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Only keep countries</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>PKX_merged<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">filter</span>(isCountry<span class="sc">==</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="top-10-exporting-destinations-in-case-of-pakistan-in-2016" class="level2">
+<h2 class="anchored" data-anchor-id="top-10-exporting-destinations-in-case-of-pakistan-in-2016">Top 10 exporting destinations in case of Pakistan in 2016</h2>
+<p>Sort export value by descending order using <code>arrange()</code> and then select top 10 exporting destinations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>PKX_merged_top10<span class="ot">&lt;-</span>PKX_merged <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(value)) </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>PKX_merged_top10<span class="ot">&lt;-</span><span class="fu">head</span>(PKX_merged_top10,<span class="dv">10</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>PAK<span class="ot">&lt;-</span><span class="fu">ggplot</span>(PKX_merged_top10, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(country,<span class="sc">-</span>value), <span class="at">y =</span> value<span class="sc">*</span><span class="dv">1000</span>, <span class="at">fill=</span>region))<span class="sc">+</span><span class="fu">geom_bar</span>(<span class="at">stat=</span><span class="st">'identity'</span>)<span class="sc">+</span><span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">size =</span> <span class="dv">10</span>))<span class="sc">+</span><span class="fu">labs</span>(<span class="at">x=</span><span class="st">""</span>,<span class="at">y=</span><span class="st">"USD Millions"</span>,<span class="at">title=</span><span class="st">"Top 10 exporting destinations of Pakistan in 2016"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>PAK</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
-<section id="include-size-of-population" class="level2">
-<h2 class="anchored" data-anchor-id="include-size-of-population">Include size of population</h2>
+<section id="india" class="level2">
+<h2 class="anchored" data-anchor-id="india">India</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>()<span class="sc">+</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span>partner <span class="sc">%in%</span> cntry_w) </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>PK_X_2016 </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>PK_X_2016<span class="ot">&lt;-</span>trade_data[trade_data<span class="sc">$</span>flow<span class="sc">==</span><span class="st">"E"</span><span class="sc">&amp;</span> <span class="co">#select only exports</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>reporter<span class="sc">==</span><span class="dv">564</span><span class="sc">&amp;</span> <span class="co">#from china</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>year<span class="sc">==</span><span class="dv">2016</span><span class="sc">&amp;</span> <span class="co">#in 2016</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner<span class="sc">!=</span><span class="dv">1</span><span class="sc">&amp;</span> <span class="co">#where country is not world (code for world is 1)</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>trade_data<span class="sc">$</span>partner <span class="sc">%in%</span> cntry_w, <span class="co">#which is in the list of codes that we filtered earlier</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a><span class="st">"value"</span> <span class="co">#variable we're interested in</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a><span class="fu">sum</span>(PK_X_2016)<span class="sc">/</span><span class="dv">1000000000</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="india-1" class="level2">
+<h2 class="anchored" data-anchor-id="india-1">India</h2>
+<div class="cell">
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>##Bangladesh</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
-<section id="some-further-refinement-and-labeling" class="level2">
-<h2 class="anchored" data-anchor-id="some-further-refinement-and-labeling">Some further refinement and labeling</h2>
+<section id="sri-lank" class="level2">
+<h2 class="anchored" data-anchor-id="sri-lank">Sri Lank</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year<span class="sc">==</span><span class="dv">2020</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>) <span class="co">#add y axis title</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df_gdp <span class="sc">%&gt;%</span> </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>) <span class="co">#add y axis title</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 </section>
-<section id="animated-graphs" class="level2">
-<h2 class="anchored" data-anchor-id="animated-graphs">Animated graphs</h2>
+<section id="south-asia" class="level2">
+<h2 class="anchored" data-anchor-id="south-asia">South Asia</h2>
+<p>Total export of Bangladesh, India, Pakistan and Sril Lanka in billion of USD is 30.1310391, 261.862, 20.5478447 and 10.0459592 respectively.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages('gifski')</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"gifski"</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages('tweenr')</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"tweenr"</span>)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gganimate)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(png)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>animated_ggplot<span class="ot">&lt;-</span>df_gdp <span class="sc">%&gt;%</span> </span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>) <span class="sc">+</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">transition_time</span>(year)</span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>animated_ggplot</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-11-1.gif" class="img-fluid"></p>
-</div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anim_save</span>(<span class="st">"animated_ggplot.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>We can add a title (Year) to the graph by specifying in labs - title=“Year: {frame_time}”:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>animated_ggplot2<span class="ot">&lt;-</span>df_gdp <span class="sc">%&gt;%</span> </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>, <span class="at">title =</span> <span class="st">"Year:{frame_time}"</span>) <span class="sc">+</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">transition_time</span>(year)</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>animated_ggplot2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-12-1.gif" class="img-fluid"></p>
-</div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anim_save</span>(<span class="st">"animated_ggplot2.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>To make it go slower</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">animate</span>(animated_ggplot2, <span class="at">nframes=</span><span class="dv">350</span>, <span class="at">fps=</span><span class="dv">20</span>) <span class="co"># to make it go slower</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-13-1.gif" class="img-fluid"></p>
-</div>
-</div>
-<p>Regions as the color variable</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>animated_ggplot3<span class="ot">&lt;-</span>df_gdp <span class="sc">%&gt;%</span> </span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>region)<span class="sc">+</span><span class="fu">geom_point</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>)<span class="sc">+</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>, <span class="at">title =</span> <span class="st">"Year:{frame_time}"</span>) <span class="sc">+</span></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">transition_time</span>(year)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>animated_ggplot3</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-14-1.gif" class="img-fluid"></p>
-</div>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anim_save</span>(<span class="st">"animated_ggplot3.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(BD,IND,PAK,SRL, <span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="south-asia-major-economies" class="level2">
-<h2 class="anchored" data-anchor-id="south-asia-major-economies">South Asia : Major Economies</h2>
+<section id="gravity-model" class="level2">
+<h2 class="anchored" data-anchor-id="gravity-model">Gravity Model</h2>
+<p>In this section we shall use gravity model to see how does physical distance affect trade. Data are downloaded from</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>animated_ggplot_sa<span class="ot">&lt;-</span>df_gdp <span class="sc">%&gt;%</span> <span class="fu">filter</span>(iso3c <span class="sc">%in%</span><span class="fu">c</span>(<span class="st">"BGD"</span>,<span class="st">"IND"</span>,<span class="st">"PAK"</span>,<span class="st">"LKA"</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>()<span class="sc">+</span><span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(GDP), Fertility, <span class="at">size=</span>population, <span class="at">color=</span>iso3c)<span class="sc">+</span><span class="fu">geom_point</span>()<span class="sc">+</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_log10</span>()<span class="sc">+</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"GDP per capita (constant 2015 USD)"</span>,       <span class="co">#add x axis title</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Fertility rate, total (births per woman)"</span>, <span class="at">title =</span> <span class="st">"Year:{frame_time}"</span>) <span class="sc">+</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a> <span class="fu">transition_time</span>(year)</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>animated_ggplot_sa</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-15-1.gif" class="img-fluid"></p>
-</div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anim_save</span>(<span class="st">"animated_ggplot_sa.gif"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co">#grav_data&lt;-read_csv("C:/Users/92300/Downloads/short_data.csv")</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co">#grav_data</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="co">#gd&lt;-saveRDS(grav_data,file="gd.RData")</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>gd<span class="ot">&lt;-</span><span class="fu">readRDS</span>(<span class="st">"gd.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">animate</span>(animated_ggplot_sa, <span class="at">nframes=</span><span class="dv">350</span>, <span class="at">fps=</span><span class="dv">20</span>) <span class="co"># to make it go slower</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "...1"              "reporter"          "partner"          
+ [4] "year"              "export_ij"         "import_ij"        
+ [7] "trade_ij"          "export_i"          "import_i"         
+[10] "trade_i"           "export_j"          "import_j"         
+[13] "trade_j"           "ctcij"             "ntcij"            
+[16] "tariffrateij_sa"   "tariffrateij_wa"   "tariff_ij_sa"     
+[19] "tariff_ij_wa"      "tariffrateji_sa"   "tariffrateji_wa"  
+[22] "tariff_ji_sa"      "tariff_ji_wa"      "ga_tariff_ijji_sa"
+[25] "ga_tariff_ijji_wa" "dist"              "contig"           
+[28] "comlang_off"       "comlang_ethno"     "colony"           
+[31] "comcol"            "curcol"            "col45"            
+[34] "smctry"            "landlocked_i"      "landlocked_j"     
+[37] "landlocked_ij"     "rta"               "gdp_i"            
+[40] "gdpgrowth_i"       "gdppc_i"           "gdppcgrowth_i"    
+[43] "rgdp_i"            "rgdppc_i"          "gdp_j"            
+[46] "gdpgrowth_j"       "gdppc_j"           "gdppcgrowth_j"    
+[49] "rgdp_j"            "rgdppc_j"          "dtf_i"            
+[52] "tab_i"             "startbiz_i"        "credit_i"         
+[55] "invest_i"          "tax_i"             "contract_i"       
+[58] "dtf_j"             "tab_j"             "startbiz_j"       
+[61] "credit_j"          "invest_j"          "tax_j"            
+[64] "contract_j"        "lsci_i"            "lsci_j"           
+[67] "lpi_i"             "lpi_j"            </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>gr_mod<span class="ot">&lt;-</span><span class="fu">lm</span>(export_ij<span class="sc">~</span>dist,<span class="at">data=</span>gd)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-16-1.gif" class="img-fluid"></p>
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> 1094335800.336 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (16216751.545) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> dist </td>
+   <td style="text-align:center;"> −73722.696 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (1932.181) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 374238 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.004 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 17822183.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 17822215.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −8911088.698 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 5307300689.42 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>There are large number of missing values which need to be dropped from <code>export_ij</code> variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>gd<span class="ot">&lt;-</span> gd <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(export_ij)<span class="sc">|</span>export_ij<span class="sc">!=</span><span class="dv">0</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 397638     68</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">#gr_mod2&lt;-lm(log(export_ij)~log(dist),data=gd)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There are <code>0</code> values and log operator will not apply, so lets replace log values by a small amount or drop <code>0s</code> from the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>gd[gd<span class="sc">$</span>export_ij<span class="sc">==</span><span class="dv">0</span>,<span class="st">"export_ij"</span>] <span class="ot">&lt;-</span> <span class="fl">0.0001</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>gr_mod3<span class="ot">&lt;-</span><span class="fu">lm</span>(<span class="fu">log</span>(export_ij)<span class="sc">~</span><span class="fu">log</span>(dist),<span class="at">data =</span> gd)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod3)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> 23.169 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.078) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −0.974 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.009) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 374238 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.030 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.030 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 13321673.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 13321705.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −1119945.153 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:center;"> 11660.950 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 4.82 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</section>
+<section id="linear-gravity-model-with-more-variables-and-interaction-terms" class="level2">
+<h2 class="anchored" data-anchor-id="linear-gravity-model-with-more-variables-and-interaction-terms">Linear Gravity model with more variables and interaction terms</h2>
+<p>Let’s create a new regression with more variables:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>gr_mod4 <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>             , <span class="at">data =</span> gd)</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod4)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −30.118 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.145) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.365 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.009) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.406 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.003) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.872 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.003) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 0.821 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.022) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> 0.361 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.134) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.470 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.470 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 9478461.4 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 9478534.7 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −702115.760 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:center;"> 46568.690 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 3.50 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>We can also add interaction terms in order to capture joint variable effects by specifying the interaction in I operator:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>gr_mod5<span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(rta<span class="sc">*</span><span class="fu">log</span>(gdp_j)) <span class="sc">+</span> <span class="co">#put interaction in I operator</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(dist<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="co">#first order polynomial - non-linear transformation</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>           , <span class="at">data =</span> gd)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(gr_mod5)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −29.061 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.173) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.694 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.013) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.425 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.004) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.913 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.004) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 6.319 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.208) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(rta * log(gdp_j)) </td>
+   <td style="text-align:center;"> −0.226 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.008) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(dist^2) </td>
+   <td style="text-align:center;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.000) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> −0.024 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.134) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.474 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.474 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 9476514.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 9476609.1 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> −701140.477 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 3.48 </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>To obtain <strong>STATA</strong> type robust se, we use <code>library(estimatr)</code> and run <code>lm_robust</code> instead of <code>lm</code> and report <code>clustered standard errors</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(estimatr)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>reg_robust<span class="ot">&lt;-</span> <span class="fu">lm_robust</span>(<span class="fu">log</span>(export_ij) <span class="sc">~</span> <span class="fu">log</span>(dist) <span class="sc">+</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_i) <span class="sc">+</span> </span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(gdp_j) <span class="sc">+</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>             rta <span class="sc">+</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(rta<span class="sc">*</span><span class="fu">log</span>(gdp_j)) <span class="sc">+</span> <span class="co">#put interaction in I operator</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>             <span class="fu">I</span>(dist<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="co">#first order polynomial - non-linear transformation</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>             <span class="fu">log</span>(ga_tariff_ijji_sa)</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>           , <span class="at">data =</span> gd,<span class="at">clusters =</span> dist, <span class="at">se_type =</span> <span class="st">"stata"</span>)</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(reg_robust)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> −29.061 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.485) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(dist) </td>
+   <td style="text-align:center;"> −1.694 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.042) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_i) </td>
+   <td style="text-align:center;"> 1.425 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.010) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(gdp_j) </td>
+   <td style="text-align:center;"> 0.913 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.008) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> rta </td>
+   <td style="text-align:center;"> 6.319 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.619) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(rta * log(gdp_j)) </td>
+   <td style="text-align:center;"> −0.226 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.024) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> I(dist^2) </td>
+   <td style="text-align:center;"> 0.000 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.000) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> log(ga_tariff_ijji_sa) </td>
+   <td style="text-align:center;"> −0.024 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.353) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 262863 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> −0.015 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 12593479.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 12593573.9 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 6124002494.79 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Std.Errors </td>
+   <td style="text-align:center;"> by: dist </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</section>
+<section id="poisson-pseudo-maximum-likelihood-estimator-ppml" class="level2">
+<h2 class="anchored" data-anchor-id="poisson-pseudo-maximum-likelihood-estimator-ppml">Poisson Pseudo-Maximum Likelihood Estimator (PPML)</h2>
+<p>The PPML model is often used in trade analysis because it can include trade values equal to zero, have fixed effects and easy interpretation. We will go over the basics of the PPML model in R. Once again, see for more information ESCAP’s gravity model guide in R.</p>
+<p>The PPML function in R can be found in the gravity package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("gravity")</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gravity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'gravity'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    nls</code></pre>
+</div>
+</div>
+<p>Here we use <code>export_ij</code> as an output variable, we specify the distance variable in our data (<code>dist</code> in this case) and add any additional variables (e.g.&nbsp;partner GDP: <code>gdp_j</code> and reporter GDP: <code>gdp_i</code>). One important point is that when we run the distance variable in PPML in R, we transform it using the natural logarithm, i.e.&nbsp;<code>log</code> in R.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ppml</span>(<span class="st">"export_ij"</span>, <span class="at">dist=</span><span class="st">"dist"</span>, <span class="fu">c</span>(<span class="st">'gdp_j'</span> ,<span class="st">'gdp_i'</span> ), <span class="at">data=</span>gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  y_ppml ~ dist_log + gdp_j + gdp_i
+
+Coefficients:
+        (Intercept)             dist_log                gdp_j  
+27.7682428428480605  -1.0214038335587627   0.0000000000002929  
+              gdp_i  
+ 0.0000000000002737  
+
+Degrees of Freedom: 349621 Total (i.e. Null);  349618 Residual
+  (24616 observations deleted due to missingness)
+Null Deviance:      1330000000000000 
+Residual Deviance: 696700000000000  AIC: NA</code></pre>
+</div>
+</div>
+<p>PPML can handle zeros very well.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>gd[gd<span class="sc">$</span>export_ij<span class="sc">==</span><span class="fl">0.0001</span>,<span class="st">"export_ij"</span>] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ppml</span>(<span class="st">"export_ij"</span>, <span class="at">dist=</span><span class="st">"dist"</span>, <span class="fu">c</span>(<span class="st">'gdp_j'</span> ,<span class="st">'gdp_i'</span> ), <span class="at">data=</span>gd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  y_ppml ~ dist_log + gdp_j + gdp_i
+
+Coefficients:
+        (Intercept)             dist_log                gdp_j  
+27.7682428428480392  -1.0214038335587627   0.0000000000002929  
+              gdp_i  
+ 0.0000000000002737  
+
+Degrees of Freedom: 349621 Total (i.e. Null);  349618 Residual
+  (24616 observations deleted due to missingness)
+Null Deviance:      1330000000000000 
+Residual Deviance: 696700000000000  AIC: NA</code></pre>
 </div>
 </div>
 </section>
