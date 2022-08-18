@@ -11,7 +11,7 @@ bibliography: references.bib
 
 ## Trade Data Analysis
 
-This material is mainly based on [UN ESCAPE online training on R for trade analysis](https://r.tiid.org/). In this post, `tidyverse` is used instead of base-R (used in the original material) due to convenience and reading codes like english language. Moreover,`ggplot2` provides awesome viusalization tools.
+This material is mainly based on [UN ESCAP online training on R for trade analysis](https://r.tiid.org/). In this post, `tidyverse` is used instead of base-R (used in the original material) due to convenience and reading codes like english language. Moreover,`ggplot2` provides awesome viusalization tools.
 
 ## Loading data
 
